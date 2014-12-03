@@ -53,6 +53,10 @@ order = names(colors)
 # get bills and sponsors
 source("data.r")
 
+# select private bills from lower house; exclude commission and government bills
+# as well as all bills for which the legislature is undefined (prior to 1991)
+b = subset(b, council == "Conseil national" & n_au > 0)
+
 for(ii in unique(na.omit(b$legislature))) {
   
   cat(ii)
@@ -66,7 +70,7 @@ for(ii in unique(na.omit(b$legislature))) {
     w = unlist(strsplit(d, ";"))
     d = s$name[ s$url %in% w ]
     
-    # d = subset(expand.grid(d, d), Var1 != Var2)
+    # first authors to cosponsors
     d = subset(expand.grid(Var1 = d[1], Var2 = d[-1], stringsAsFactors = FALSE), Var1 != Var2)
     d = unique(apply(d, 1, function(x) paste0(sort(x), collapse = "__")))
     
@@ -95,10 +99,10 @@ for(ii in unique(na.omit(b$legislature))) {
   # network
   
   n = network(edges[, 1:2 ], directed = FALSE)
-  n %n% "title" = paste("Assemblée fédérale", paste0(range(unique(substr(data$date, 1, 4))), collapse = " to "))
+  n %n% "title" = paste("Conseil national", paste0(range(unique(substr(data$date, 1, 4))), collapse = " to "))
   n %n% "n_bills" = nrow(data)
   
-  n %n% "n_sponsors" = table(subset(b, legislature == ii)$n_au)
+  n %n% "n_sponsors" = table(subset(b, legislature == ii)$n_a)
   
   cat(network.size(n), "nodes")
   
