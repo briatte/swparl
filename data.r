@@ -1,3 +1,7 @@
+root = "http://www.parlament.ch"
+bills = "data/bills.csv"
+sponsors = "data/sponsors.csv"
+
 # scrape bills
 
 if(!file.exists(bills)) {
@@ -66,10 +70,10 @@ if(!file.exists(bills)) {
           t = xpathSApply(h, "//dd[@data-field='deposit-council']", xmlValue)
           council[ council == j ] = ifelse(length(t), t, NA)
           
-          outcome[ outcome == j ] = scrubber(xpathSApply(h, "//dd[@data-field='state']", xmlValue))
+          outcome[ outcome == j ] = str_clean(xpathSApply(h, "//dd[@data-field='state']", xmlValue))
           
           t = xpathSApply(h, "//ul[@class='linklist services']/li/a[contains(@href, 'kommissionen')]", xmlValue)
-          commissions[ commissions == j ] = paste0(scrubber(t), collapse = ";")
+          commissions[ commissions == j ] = paste0(str_clean(t), collapse = ";")
           
           # this syntax will not match commission-authored proposals
           t = xpathSApply(h, "//ul[@class='profilelist small']/li/a/@href")
@@ -79,7 +83,7 @@ if(!file.exists(bills)) {
           cosponsors[ cosponsors == j ] = paste0(t, collapse = ";")
           
           t = xpathSApply(h, "//div[@class='curia-vista-tags contentelement']/ul/li/a", xmlValue)
-          keywords[ keywords == j ] = paste0(scrubber(t), collapse = ";")
+          keywords[ keywords == j ] = paste0(str_clean(t), collapse = ";")
           
         } else {
           
@@ -156,16 +160,16 @@ if(!file.exists(sponsors)) {
       
       h = htmlParse(f, encoding = "UTF-8")
       
-      name = scrubber(xpathSApply(h, "//h1", xmlValue))
+      name = str_clean(xpathSApply(h, "//h1", xmlValue))
       photo = xpathSApply(h, "//img[@class='profile']/@src")
       constituency = xpathSApply(h, "//img[@class='canton']/@alt")
       
-      born = scrubber(xpathSApply(h, "//dl[@class='services'][1]/dd[1]", xmlValue))
+      born = str_clean(xpathSApply(h, "//dl[@class='services'][1]/dd[1]", xmlValue))
       born = str_extract(born, "[0-9]{4}")
       
       mandate = xpathSApply(h, "//ul[@class='council']/li[@class='rat']/following-sibling::li[1]", xmlValue)
       mandate = paste0(mandate, collapse = " ")
-      party = scrubber(xpathSApply(h, "//ul[@class='linklist party']/li", xmlValue))
+      party = str_clean(xpathSApply(h, "//ul[@class='linklist party']/li", xmlValue))
       
       groupname = ifelse(length(party) == 2, party[1], NA)
       partyname = ifelse(!length(party), NA, party)
