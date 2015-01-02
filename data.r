@@ -221,8 +221,36 @@ if(!file.exists(sponsors)) {
 
 s = read.csv(sponsors, stringsAsFactors = FALSE)
 
-# constituency to acronym (not used in order to pass full name to GEXF export)
-# s$constituency = gsub("(.*)\\((\\w+)\\)", "\\2", s$constituency)
+# translate constituency (German/French or Italian)
+s$constituency = gsub("(.*)\\((\\w+)\\)", "\\2", s$constituency)
+s$constituency = c(
+  "AG" = "Aargau",
+  "AI" = "Appenzell I.-Rh.",
+  "AR" = "Appenzell A.-Rh.",
+  "BE" = "Bern/Berne",
+  "BL" = "Basel-Landschaft",
+  "BS" = "Basel-Stadt",
+  "FR" = "Freiburg/Fribourg",
+  "GE" = "Genève",
+  "GL" = "Glarus",
+  "GR" = "Graubünden/Grigioni", # 2nd is Italian
+  "JU" = "Jura",
+  "LU" = "Luzern",
+  "NE" = "Neuchâtel",
+  "NW" = "Nidwalden",
+  "OW" = "Obwalden",
+  "SG" = "St. Gallen",
+  "SH" = "Schaffhausen",
+  "SO" = "Solothurn",
+  "SZ" = "Schwyz",
+  "TG" = "Thurgau",
+  "TI" = "Ticino", # Italian
+  "UR" = "Uri",
+  "VD" = "Vaud",
+  "VS" = "Wallis/Valais",
+  "ZG" = "Zug",
+  "ZH" = "Zürich"
+)[ s$constituency ]
 
 # simplify photo URL
 s$photo = gsub("photos/|\\.jpg", "", s$photo)
@@ -282,12 +310,12 @@ s$party = s$partyname
 s$party = gsub("(.*)\\s\\((.*)\\)", "\\2", s$party) # use abbreviations only
 s$party[ s$party %in% c("SVP", "UDC") ] = "SVP/UDC" # 
 s$party[ s$party %in% c("SP", "PSS") ] = "SPS/PSS" # 
-s$party[ s$party %in% c("LPS", "PLS", "FDP-Liberale", "PLR") ] = "LPS/PLS-FDP/PLR" # Liberals + FDP
-# s$party[ s$party %in% c("LPS", "PLS") ] = "LPS/PLS" # Liberals
-# s$party[ s$party %in% c("FDP-Liberale", "PLR") ] = "FDP/PLR" # FDP
+# s$party[ s$party %in% c("LPS", "PLS", "FDP-Liberale", "PLR") ] = "LPS/PLS-FDP/PLR" # Liberals + FDP
+s$party[ s$party %in% c("LPS", "PLS") ] = "LPS/PLS" # Liberals
+s$party[ s$party %in% c("FDP-Liberale", "PLR") ] = "FDP/PLR" # FDP
 s$party[ s$party %in% c("CVP", "PDC", "PPD") ] = "CVP/PDC/PPD" # 3rd acronym is Italian
 s$party[ s$party %in% c("BDP", "PBD") ] = "BDP/PBD" # PBD not used
-s$party[ s$party %in% c("GPS", "PES", "GB") ] = "GPS/PES/GB" # includes Greens from Bern, GB
+s$party[ s$party %in% c("GPS", "PES", "GB") ] = "GPS/PES/GB" # 3rd acronym are Greens from Bern
 s$party[ s$party %in% c("glp", "PVL", "pvl") ] = "GLP/PVL" # PVL not used
 s$party[ s$party %in% c("EVP", "PEV") ] = "EVP/PEV" # PEV not used
 s$party[ s$party %in% c("CSP", "CSPO", "PCS", "csp-ow") ] = "CSP/PCS" # PCS not used
@@ -296,49 +324,25 @@ s$party[ s$party %in% c("EDU", "UDF") ] = "EDU/UDF" # UDF not used
 s$party[ s$party %in% c("AL", "LG") ] = "AL/LG" # AL not used
 s$party[ s$party %in% c("SLB", "MSL") ] = "SLB/MSL" # SLB not used
 s$party[ s$party %in% c("LdU") ] = "LDU" # 
-s$party[ s$party %in% c("MCR", "MCG") ] = "MCR/MCG" # MCG not used
-s$party[ s$party %in% c("PdT", "PdA") ] = "PDA/PST" # PdA not used
+s$party[ s$party %in% c("MCR", "MCG") ] = "MCR/MCG" # MCG not used (electoral list named MCR)
+s$party[ s$party %in% c("PdT", "PdA") ] = "PDA/PST" # PdA not used (Parti Suisse du Travail)
 s$party[ s$party %in% c("FPS", "PSL") ] = "FPS/PSL" # PSL not used
-table(s$party, exclude = NULL)
-
-# party translations (English, except one regionalist with French name only)
-
-s$partyname[ s$party == "SVP/UDC" ] = "Swiss People's Party, SVP/UDC"
-s$partyname[ s$party == "SPS/PSS" ] = "Social Democratic Party, SPS/PSS"
-s$partyname[ s$party == "LPS/PLS-FDP/PLR" ] = "FDP.The Liberals, LPS/PLS-FDP/PLR"
-# s$partyname[ s$party == "LPS/PLS" ] = "Liberal Party, LPS/PLS"
-# s$partyname[ s$party == "FDP/PLR" ] = "FDP.The Liberals, FDP/PLR"
-s$partyname[ s$party == "CVP/PDC/PPD" ] = "Christian Democratic People's Party, CVP/PDC/PPD"
-s$partyname[ s$party == "BDP/PBD" ] = "Conservative Democratic Party, BPD/PBD"
-s$partyname[ s$party == "GPS/PES/GB" ] = "Green Party, GPS/PES"
-s$partyname[ s$party == "GLP/PVL" ] = "Green Liberal Party, GLP/PVL"
-s$partyname[ s$party == "EVP/PEV" ] = "Evangelical People's Party, EVP/PEV"
-s$partyname[ s$party == "CSP/PCS" ] = "Christian Social Party, CSP/PCS"
-s$partyname[ s$party == "LEGA" ] = "Ticino League"
-s$partyname[ s$party == "LDU" ] = "Ring of Independents, LdU/AdI"
-s$partyname[ s$party == "EDU/UDF" ] = "Federal Democratic Union, EDU/UDF"
-s$partyname[ s$party == "AL/LG" ] = "Alternative Left, AL/LG/LS"
-s$partyname[ s$party == "SLB/MSL" ] = "Social Liberal Movement, SLB/MSL"
-s$partyname[ s$party == "MCR/MCG" ] = "Mouvement Citoyens Genevois/Romand, MCG/MCR"
-s$partyname[ s$party == "PDA/PST" ] = "Swiss Party of Labour, PdA/PST"
-s$partyname[ s$party == "FPS/PSL" ] = "Freedom Party, FPS/PSL"
-
-# final simplification: parties at n < 2 in all networks recoded to IND/MIN
+# table(s$party, exclude = NULL)
+# final simplification: parties at n < 2 in all networks recoded to IND
 s$party[ s$party %in% c("AL/LG", "EDU/UDF", "PDA/PST", "SLB/MSL") ] = "IND"
 
-s$partyname[ s$party == "IND" ] = "independent or minor party"
+# full party names
+s$partyname = groups[ s$party ]
 
 s$sex = NA
 # fn = sapply(s$name[ is.na(s$sex) ], function(x) unlist(strsplit(x, " "))[1])
 # sort(unique(fn))
-
-# checked: no female/male overlap between the regex
+# checked: 
+# - no female/male overlap between the regex
+# - all Claudes are males
 s$sex[ grepl("^(Ada\\s|Adèle|Agnes|Alice|Aline|Angeline|Anita|Anne|Barbara|Bea\\s|Brigit(tta|tte)?|Cécile|Céline|Cesla|Chantal|Chiara|Christa|Christiane|Christine|Claudia|Corina|Daniela|Doris|Dorle|Edith|Elisabeth|Elvira|Emmanuella|Erika|Esther|Eva\\s|Evi\\s|Fabienne|Francine|Françoise|Franziska|Gabi\\s|Geneviève|Geo\\s|Géraldine|Gisèle|Helen|Hildegard|Ida\\s|Isabelle|Jacqueline|Jasmin|Josiane|Josy|Judith|Kälin|Karin|Katharina|Käthi|Kathrin|Kathy|Laura|Len(i|z)|Lili(\\s|ane)|Lisbeth|Lucrezia|Madeleine|Maja|Margrit|Marguerite|Maria(\\s|nne)|Marie-Thérèse|Mar(ina|gret)|Marl(ies|yse)|Martin(a|e)|Maya|Menga|Michèle-Irène|Milli|Mimi|Monika|Nadine|Nadja|Natalie|Nellen|Pascale|Petra|Pia\\s|Planta|Prisca|Rebecca|Regin(a|e)|Regula|Roberta|Rose-Marie|Ros(e)?marie|Ruth|Silv(i)?a|Simonetta|Stephanie|Susann(a|e)|Suzette|Sylvi(a|e)|Therese|Thérèse|Tiana|Trix|Ursula|Valérie|Verena|Viola|Vreni|Yv(ette|onne))", s$name) ] = "F"
-
-# checked: all Claudes are males
 s$sex[ grepl("^(Adalbert|Adrian(o)?|Alain|Albert|Albrecht|Alec|Alex(\\s|ander|is)|Alfred|Allmen|Alois|André|Andrea(s)?|Andy|Anton|Armin|Arthur|Attilio|Balthasar|Bastien|Beat|Béguelin|Bern(h)?ard|Boris|Bruno|Carlo|Carrard|Caspar|Cédric|Charles|Christian\\s|Christoffel|Christoph(\\s|e)|Claude\\s|Corrado|Cyrill|Daniel\\s|Dick|Didier|Dominique (Baettig|de Buman)|Dumeni|Duri\\s|Edgar|Edi\\s|Edouard|Elmar|Eric(\\s|h)|Ernst|Erwin|Eugen|Fabio|Fathi|Felix|Fernand\\s|Filippo|Flavio|Francis\\s|Franco|François\\s|Franz\\s|Franz-Joseph|Fredi|Fritz|Fulvio|Gabriel(\\s|e)|Georg(\\s|es)|Gerhard|Geri\\s|Gerold|Gian-Reto|Gilbert|Giorgio|Giovanni|Giuliano|Gregor|Guido|Guillaume|Guscetti|Guy\\s|Hannes|Hans(-|\\s|j|p|ruedi|ueli|heiri)|Hardi|Heiner|Heinrich|Heinz|Helmut|Herbert|Hermann|Hubert|Hugo|Hugues|Ignazio|Isidor|Ivo\\s|Jacques|Jakob|Jean(\\s|-)|Joachim|Johann(\\s|es)|John|Josef|Joseph|Josias|Jost|Jürg|Karl|Kaspar|Konrad|Kurt|Laurent|Lieni|Leo\\s|Lorenz(\\s|o)|Lothar|Louis|Luc\\s|Lukas|Luregn|Luzi|Manfred|Manuel\\s|Marc(\\s|el\\s|o\\s)|Mario|Markus|Martin\\s|Massimo|Ma(t)?thias|Maurice|Mauro|Max(\\s|imilian)|Meinrado|Melchior|Michael\\s|Michel|Moritz|Niklaus|Norbert|Norman|Oberholzer|Odilo|Olivier|Os(c|k)ar|Oswald|Otto|Pankraz|Pascal\\s|Patrice|Paul\\s|Paul-André|Peter\\s|Peter-Josef|Philipp(\\s|e)|Pierre|Pirmin|Pius|Raphaël\\s|Raymond|Reinhard|Remigio|Remo|Rémy|René\\s|Renzo|Reto\\s|Ricardo|Rico\\s|Robert(\\s|o)|Roger|Roland|Rolf|Rotz|Rudolf|Ruedi|Samuel\\s|Sebastian|Sep\\s|Serg(e|io)|Simon\\s|Stefan\\s|Stéphane|Tarzisius|Theo(\\s|dor|phil)|Thierry|This|Thomas|Titus|Toni\\s|Ueli|Ulrich|Urs\\s|Victor\\s|Vital|Walter|Werner|Wilfried|Willi(\\s|am)|Willy|Yannick|Yv(an|es))", s$name) ] = "M"
-
 s$sex[ s$name == "Dominique Ducret" ] = "M" # checked
 s$sex[ s$name == "Andrea Martina Geissbühler" ] = "F" # recoded as male by regex
 
-# kthxbye
+# done
