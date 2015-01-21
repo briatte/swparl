@@ -7,7 +7,7 @@ This repository contains code to build cosponsorship networks from bills passed 
 
 Replicate by running `make.r` in R.
 
-The `data.r` script downloads information on bills and sponsors.
+The `data.r` script downloads information on bills and sponsors. See also the [open data portal](http://ws.parlament.ch/) of the Swiss parliament, although its API does not allow querying for sponsor information.
 
 The `build.r` script then assembles the edge lists and plots the networks, with the help of a few routines coded into `functions.r`. Adjust the parameters in `make.r` to skip the plots or to change the node placement algorithm.
 
