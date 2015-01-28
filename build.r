@@ -174,4 +174,5 @@ for(ii in unique(na.omit(b$legislature))) {
 if(gexf)
   zip("net_ch.zip", dir(pattern = "^net_ch\\d{4}-\\d{4}\\.gexf$"))
 
-save(list = ls(pattern = "^(net|edges|bills)_ch\\d{4}$"), file = "data/net_ch.rda")
+save(list = ls(pattern = "^(net|edges|bills)_ch\\d{4}$"),
+     file = "data/net_ch.rda")
