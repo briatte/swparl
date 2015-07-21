@@ -1,7 +1,8 @@
 This repository contains code to build cosponsorship networks from bills passed in the [lower/national chamber](http://www.parlament.ch/) of the Swiss Parliament.
 
-- [interactive demo](http://briatte.org/swparl)
-- [static plots](http://briatte.org/swparl/plots.html)
+- [interactive demo](http://f.briatte.org/parlviz/swparl)
+- [static plots](http://f.briatte.org/parlviz/swparl/plots.html)
+- [more countries](https://github.com/briatte/parlnet)
 
 # HOWTO
 
