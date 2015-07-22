@@ -1,7 +1,7 @@
 # party groups
 
 groups = c(
-  "PDT" = "Party of Labour",
+  "PDT" = "Labour Party",
   "FRAP" = "Frauen Macht Politik!", # single member, 1999 and 2003, now in PSS
   "PES" = "Green Party",
   "PSS" = "Socialist Party",
