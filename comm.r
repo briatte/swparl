@@ -1,82 +1,59 @@
-# add committee co-memberships
+# parse sponsor JSON profiles
+c = sapply(list.files("raw/sponsors", pattern = "json$", full.names = TRUE),
+           fromJSON, flatten = TRUE)
 
-load("data/net_ch.rda")
-comm = data.frame()
+# extract committee membership tables
+c = sapply(c, function(x) {
+  y = x$id
+  x = x$committeeMemberships
+  if(class(x) == "data.frame")
+    data.frame(chamber = x$committee.council.id, id = y,
+               legislature = x$entryDate, code = x$committee.code,
+               stringsAsFactors = FALSE) %>%
+    filter(chamber < 3)
+}) %>% bind_rows
 
-# find unique committees
+# convert chamber ids to letters
+c$chamber = c("cn", "cs")[ c$chamber ]
 
-for(i in dir("raw", pattern = "mp-\\d+\\.html$", full.names = TRUE)) {
-  
-  h = htmlParse(i, encoding = "UTF-8")
-  l = xpathSApply(h, "//dd//a[contains(@href, 'kommissionen')]/@href")
-  y = xpathSApply(h, "//dd//a[contains(@href, 'kommissionen')]/..", xmlValue)
-  y = substr(str_clean(y), 1, 10)
-  y = as.Date(strptime(y, "%d.%m.%Y"))
-  y[ is.na(y) ] = as.Date("2014-01-01") # mandats actuels
-  # n = xpathSApply(h, "//dd//a[contains(@href, 'kommissionen')]", xmlValue) # name (multilingual)
-  comm = rbind(comm, data.frame(y, l, stringsAsFactors = FALSE))
-  
-}
+# find legislature id (closest start date)
+c$legislature = as.Date(c$legislature)
+c$legislature = sapply(c$legislature, function(x) {
+  x = x - as.Date(legislatures)
+  names(legislatures)[ which.min(x[ x > 0 ]) ]
+})
 
-comm$legislature = NA
-comm$legislature[ comm$y <= as.Date("1995-10-22") ] = "1991-1995"
-comm$legislature[ comm$y > as.Date("1995-10-22") & comm$y <= as.Date("1999-10-24") ] = "1995-1999"
-comm$legislature[ comm$y > as.Date("1999-10-24") & comm$y <= as.Date("2003-10-19") ] = "1999-2003"
-comm$legislature[ comm$y > as.Date("2003-10-19") & comm$y <= as.Date("2007-10-21") ] = "2003-2007"
-comm$legislature[ comm$y > as.Date("2007-10-21") & comm$y <= as.Date("2011-10-23") ] = "2007-2011"
-comm$legislature[ comm$y > as.Date("2011-10-23") & comm$y <= as.Date("2015-10-01") ] = "2011-2015" # l. 49
+# trim committee codes
+c$code = gsub("_$", "", c$code)
 
-comm = unique(comm[, c("legislature", "l") ]) %>%
-  arrange(legislature, l)
+# remove baseline legislature
+c = filter(c, legislature != "1991-1995")
+
+# export committe membership counts
+write_csv(group_by(c, chamber, legislature, code) %>%
+            summarise(members = n()), "data/committees.csv")
 
 # unique legislature-committee pairs
-comm = data.frame(uid = paste(comm$legislature, comm$l), stringsAsFactors = FALSE)
+c$uid = paste0(c$chamber, c$legislature, c$code)
 
-# add sponsor columns
-for(i in dir("raw", pattern = "mp-\\d+\\.html$", full.names = TRUE))
-  comm[, gsub("raw/mp-|\\.html", "", i) ] = 0
+# master committee membership dataset
+comm = data_frame(uid = paste0(c$chamber, c$legislature, c$code)) %>% unique
+comm[, as.character(unique(s$id)) ] = 0
 
-for(i in dir("raw", pattern = "mp-\\d+\\.html$", full.names = TRUE)) {
-  
-  h = htmlParse(i, encoding = "UTF-8")
-  l = xpathSApply(h, "//dd//a[contains(@href, 'kommissionen')]/@href")
-  y = xpathSApply(h, "//dd//a[contains(@href, 'kommissionen')]/..", xmlValue)
-  y = substr(str_clean(y), 1, 10)
-  y = as.Date(strptime(y, "%d.%m.%Y"))
-  y[ is.na(y) ] = as.Date("2014-01-01") # mandats actuels
-  
-  z = NA
-  z[ y <= as.Date("1995-10-22") ] = "1991-1995"
-  z[ y > as.Date("1995-10-22") & y <= as.Date("1999-10-24") ] = "1995-1999"
-  z[ y > as.Date("1999-10-24") & y <= as.Date("2003-10-19") ] = "1999-2003"
-  z[ y > as.Date("2003-10-19") & y <= as.Date("2007-10-21") ] = "2003-2007"
-  z[ y > as.Date("2007-10-21") & y <= as.Date("2011-10-23") ] = "2007-2011"
-  z[ y > as.Date("2011-10-23") & y <= as.Date("2015-10-01") ] = "2011-2015" # l. 49
-  
-  y = paste(z, l)
-  comm[ comm$uid %in% y, names(comm) == gsub("raw/mp-|\\.html", "", i) ] = 1
-  
-}
+for(i in colnames(comm)[ -1 ])
+  comm[, i ] = as.integer(comm$uid %in% c$uid[ c$id == i ])
 
-# save flat list
-
-write.csv(cbind(legislature = substr(comm$uid, 1, 9), 
-                url = substring(comm$uid, first = 11), 
-                members = rowSums(comm[, -1:-2 ])),
-          "data/committees.csv", row.names = FALSE)
-
-# assign co-memberships to networks
-comm$legislature = substr(comm$uid, 1, 4)
+comm$legislature = substr(comm$uid, 1, 6)
 for(i in unique(comm$legislature)) {
   
   cat("Legislature", i)
   
-  n = get(paste0("net_ch", i))
+  n = get(paste0("net_ch_", i))
   sp = network.vertex.names(n)
   
   names(sp) = n %v% "url"
   
-  m = comm[ comm$legislature == i, names(comm) %in% names(sp) ]
+  m = comm[ grepl(paste0("^", i), comm$legislature), names(comm) %in% names(sp) ]
   cat(":", nrow(m), "committees", ncol(m), "MPs")
   M = m
   
@@ -85,7 +62,6 @@ for(i in unique(comm$legislature)) {
   
   colnames(m) = sp[ colnames(m) ]
   rownames(m) = sp[ rownames(m) ]
-  
   
   e = data.frame(i = n %e% "source", 
                  j = n %e% "target", 
@@ -108,12 +84,12 @@ for(i in unique(comm$legislature)) {
   stopifnot(!is.na(nn %e% "committee"))
   
   n %e% "committee" = e$committee
-  assign(paste0("net_ch", i), n)
+  assign(paste0("net_ch_", i), n)
   
   nn %n% "committees" = as.table(rowSums(M))
-  assign(paste0("conet_ch", i), nn)
-
+  assign(paste0("conet_ch_", i), nn)
+  
 }
 
-save(list = ls(pattern = "^((co)?net|edges|bills)_ch\\d{4}$"),
+save(list = ls(pattern = "^((co)?net|edges|bills)_ch_\\w+\\d{4}$"),
      file = "data/net_ch.rda")

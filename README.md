@@ -8,7 +8,7 @@ This repository contains code to build cosponsorship networks from bills passed 
 
 Replicate by running `make.r` in R.
 
-The `data.r` script downloads information on bills and sponsors. See also the [open data portal](http://ws.parlament.ch/) of the Swiss parliament, although its API does not allow querying for sponsor information.
+The `data.r` script downloads information on bills and sponsors, using information from the website of the Swiss parliament and from its [open data portal](http://ws.parlament.ch/). All sponsor photos should download fine.
 
 The `build.r` script then assembles the edge lists and plots the networks, with the help of a few routines coded into `functions.r`. Adjust the parameters in `make.r` to skip the plots or to change the node placement algorithm.
 
@@ -16,33 +16,24 @@ The `build.r` script then assembles the edge lists and plots the networks, with 
 
 ## Bills
 
-- `url` -- full bill URL
-- `file` -- bill filename
-- `summary` -- short description
-- `description` -- longer description
-- `answer` -- whether the executive has replied to the bill
-- `status` -- current status of the bill
-- `title` -- short title
-- `subtitle` -- subtitle
+- `chamber` -- chamber of introduction (1: National or 2: States)
+- `legislature` -- legislature
+- `id` -- unique identifier
 - `date` -- date of introduction (yyyy-mm-dd)
-- `council` -- chamber of introduction (National or States)
-- `outcome` -- outcome of the bill
-- `commissions` -- commission the bill was assigned to
-- `authors` -- semicolon-separated URLs of single first author
-- `cosponsors` -- semicolon-separated URLs of cosponsors
-- `keywords` -- keywords (several hundreds, in German)
-- `n_au` -- number of first authors
-- `n_co` -- number of cosponsors
-- `n_a` -- total number of sponsors
-- `legislature` -- legislature, imputed from `date`
+- `title` -- short title
+- `sponsors` -- semicolon-separated URLs of single first author
+- `n_au` -- total number of sponsors (first author + cosponsors)
 
 ## Sponsors
 
-- `url` -- profile URL
-- `name` -- sponsor name
+- `legislature` -- legislature (imputed from date of entry)
+- `id` -- unique identifier (points to profile URL)
+- `chamber` -- chamber (1: National or 2: States)
+- `name` -- full name
+- `sex` -- gender
 - `born` -- year of birth
-- `groupname` -- parliamentary group
-- `partyname` -- political party
+- `party` -- political party
 - `constituency` -- constituency
-- `mandate` -- mandate years, as date ranges
-- `photo` -- photo URL, shorted to filename
+- `nyears` -- time in office since legislature 44, in years
+
+__Note:__ the code uses French party abbreviations and English party names. Three regional party branches are grouped with larger formations: the single sponsor for _Alternative de Gauche_ in Geneva is grouped with the _Parti Suisse du Travail_, the Greens from Bern (_Grünes Bündnis_) and Zoug (_Alternative Canton de Zoug_) are grouped with the Swiss Federation of Green Parties, and the branches of the Christian Social Party in Obwalden and Wallis are grouped with their main party.
