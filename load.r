@@ -21,5 +21,4 @@ library(grid)
 
 library(httr)      # handle POST HTTP requests
 library(jsonlite)  # parse JSON data
-library(readr)     # quicker i/o for CSV files
 library(rvest)     # easier HTML parsing
