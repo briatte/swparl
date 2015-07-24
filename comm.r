@@ -31,7 +31,7 @@ c = filter(c, legislature != "1991-1995")
 
 # export committe membership counts
 write.csv(group_by(c, chamber, legislature, code) %>%
-            summarise(members = n()), "data/committees.csv", row.names = NULL)
+            summarise(members = n()), "data/committees.csv", row.names = FALSE)
 
 # unique legislature-committee pairs
 c$uid = paste0(c$chamber, c$legislature, c$code)

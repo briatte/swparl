@@ -170,7 +170,7 @@ if(!file.exists(bills)) {
   b$legislature = names(legislatures)[ as.integer(b$legislature) - 43 ]
   
   # save to disk
-  write.csv(b, bills, row.names = NULL)
+  write.csv(b, bills, row.names = FALSE)
   
 }
 
@@ -205,7 +205,7 @@ if(!file.exists(sponsors)) {
     
   }
   
-  write.csv(s, "data/sponsors-full.csv", row.names = NULL)
+  write.csv(s, "data/sponsors-full.csv", row.names = FALSE)
   
   # remove sponsor profiles for third chamber
   s = mutate(s, council.type = factor(council.type, levels = c("N", "S", "B"))
@@ -357,7 +357,7 @@ if(!file.exists(sponsors)) {
   # sanity check
   stopifnot(s$party %in% names(colors))
   
-  write.csv(s, sponsors, row.names = NULL)
+  write.csv(s, sponsors, row.names = FALSE)
   
 }
 
