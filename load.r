@@ -1,6 +1,7 @@
 # data
 
 library(dplyr)
+library(httr)
 library(stringr)
 library(XML)
 
@@ -17,6 +18,5 @@ library(grid)
 
 # extras
 
-library(httr)      # handle POST HTTP requests
 library(jsonlite)  # parse JSON data
 library(rvest)     # easier HTML parsing

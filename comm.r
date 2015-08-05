@@ -6,10 +6,9 @@ c = sapply(list.files("raw/sponsors", pattern = "json$", full.names = TRUE),
 c = sapply(c, function(x) {
   y = x$id
   x = x$committeeMemberships
-  if(class(x) == "data.frame")
-    data.frame(chamber = x$committee.council.id, id = y,
-               legislature = x$entryDate, code = x$committee.code,
-               stringsAsFactors = FALSE) %>%
+  if (class(x) == "data.frame")
+    data_frame(chamber = x$committee.council.id, id = y,
+               legislature = x$entryDate, code = x$committee.code) %>%
     filter(chamber < 3)
 }) %>% bind_rows
 
@@ -40,18 +39,20 @@ c$uid = paste0(c$chamber, c$legislature, c$code)
 comm = data_frame(uid = paste0(c$chamber, c$legislature, c$code)) %>% unique
 comm[, as.character(unique(s$id)) ] = 0
 
-for(i in colnames(comm)[ -1 ])
+for (i in colnames(comm)[ -1 ])
   comm[, i ] = as.integer(comm$uid %in% c$uid[ c$id == i ])
 
 comm$legislature = substr(comm$uid, 1, 6)
-for(i in unique(comm$legislature)) {
+for (i in unique(comm$legislature)) {
   
   cat("Legislature", i)
   
   n = get(paste0("net_ch_", i))
-  sp = network.vertex.names(n)
   
-  names(sp) = n %v% "url"
+  sp = network.vertex.names(n)
+  names(sp) = gsub("http://www.parlament.ch/f/suche/pages/biografie.aspx\\?biografie_id=", "", n %v% "url")
+  
+  stopifnot(names(sp) %in% colnames(comm))
   
   m = comm[ grepl(paste0("^", i), comm$legislature), names(comm) %in% names(sp) ]
   cat(":", nrow(m), "committees", ncol(m), "MPs")
@@ -63,12 +64,10 @@ for(i in unique(comm$legislature)) {
   colnames(m) = sp[ colnames(m) ]
   rownames(m) = sp[ rownames(m) ]
   
-  e = data.frame(i = n %e% "source", 
-                 j = n %e% "target", 
-                 stringsAsFactors = FALSE)
+  e = data_frame(i = n %e% "source", j = n %e% "target")
   e$committee = NA
   
-  for(j in 1:nrow(e))
+  for (j in 1:nrow(e))
     e$committee[ j ] = m[ e$i[ j ], e$j[ j ] ]
   
   cat(" co-memberships:", 

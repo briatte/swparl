@@ -15,6 +15,19 @@ dir.create("raw"    , showWarnings = FALSE)
 
 plot = TRUE
 gexf = TRUE
+mode = "fruchtermanreingold"
+meta = c(
+  "cty" = "Switzerland",
+  "lang" = "fr", # Wikipedia language for chamber and constituencies
+  "cn" = "Conseil_national_(Suisse)",
+  "cs" = "Conseil_des_États_(Suisse)",
+  "type-cn" = "Lower",
+  "type-cs" = "Upper",
+  "ipu-cn" = 2305,
+  "ipu-cs" = 2306,
+  "seats-cn" = 200,
+  "seats-cs" = 46
+)
 
 # build routine
 

@@ -19,21 +19,21 @@ sponsors = "data/sponsors.csv"
 # download bills
 #
 
-if(!file.exists(bills)) {
+if (!file.exists(bills)) {
   
   #
   # download indexes
   #
   
-  for(k in 1:2) {
+  for (k in 1:2) {
     
-    for(l in 49:45) {
+    for (l in 49:45) {
       
       i = 0
       
       f = paste0("raw/indexes/bills-", k, "-", l, "-", i, ".html")
       
-      if(!file.exists(f))
+      if (!file.exists(f))
         download.file(paste0(root, "f/suche/Pages/resultate.aspx?",
                              "collection=CV&gvk_gesch_erat_key=RAT_", k,
                              "_&gvk_gstate_key=ANY&gvk_gtyp_key=4&legislatur=", l,
@@ -53,7 +53,7 @@ if(!file.exists(bills)) {
         
         f = paste0("raw/indexes/bills-", k, "-", l, "-", i, ".html")
         
-        if(!file.exists(f))
+        if (!file.exists(f))
           download.file(paste0(root, "f/suche/Pages/resultate.aspx?",
                                "from=", i, "&collection=CV&gvk_gesch_erat_key=RAT_", k,
                                "_&gvk_gstate_key=ANY&gvk_gtyp_key=4&legislatur=", l,
@@ -85,7 +85,7 @@ if(!file.exists(bills)) {
   
   d = data_frame()
   
-  for(i in rev(p)) {
+  for (i in rev(p)) {
     
     cat("Page", which(p == i) %>% sprintf("%2.0f", .))
     
@@ -101,14 +101,14 @@ if(!file.exists(bills)) {
     
     cat(": scraping", length(h), "bills ")
     
-    for(j in h) {
+    for (j in h) {
       
       f = paste0("raw/bills/bill-", gsub("\\D", "", j), ".html")
       
-      if(!file.exists(f))
+      if (!file.exists(f))
         try(download.file(j, f, mode = "wb", quiet = TRUE))
       
-      if(!file.info(f)$size) {
+      if (!file.info(f)$size) {
         
         cat("x")
         file.remove(f)
@@ -135,7 +135,7 @@ if(!file.exists(bills)) {
   
   b = data_frame()
   
-  for(i in p) {
+  for (i in p) {
     
     h = html(i, encoding = "UTF-8")
     
@@ -180,7 +180,7 @@ b = read.csv(bills, stringsAsFactors = FALSE)
 # download sponsors
 #
 
-if(!file.exists(sponsors)) {
+if (!file.exists(sponsors)) {
   
   cat("Downloading sponsor indexes...\n")
   
@@ -218,32 +218,32 @@ if(!file.exists(sponsors)) {
   s$start = as.Date(s$membership.entryDate)
   s$end = as.Date(s$membership.leavingDate)
   s$constituency = c(
-    "AG" = "Aargau",
-    "AI" = "Appenzell I.-Rh.",
-    "AR" = "Appenzell A.-Rh.",
-    "BE" = "Bern/Berne",
-    "BL" = "Basel-Landschaft",
-    "BS" = "Basel-Stadt",
-    "FR" = "Freiburg/Fribourg",
-    "GE" = "Genève",
-    "GL" = "Glarus",
-    "GR" = "Graubünden/Grigioni", # 2nd is Italian
-    "JU" = "Jura",
-    "LU" = "Luzern",
-    "NE" = "Neuchâtel",
-    "NW" = "Nidwalden",
-    "OW" = "Obwalden",
-    "SG" = "St. Gallen",
-    "SH" = "Schaffhausen",
-    "SO" = "Solothurn",
-    "SZ" = "Schwyz",
-    "TG" = "Thurgau",
-    "TI" = "Ticino", # Italian
-    "UR" = "Uri",
-    "VD" = "Vaud",
-    "VS" = "Wallis/Valais",
-    "ZG" = "Zug",
-    "ZH" = "Zürich"
+    "AG" = "Canton_d'Argovie",
+    "AI" = "Canton_d'Appenzell_Rhodes-Intérieures",
+    "AR" = "Canton_d'Appenzell_Rhodes-Extérieures",
+    "BE" = "Canton_de_Berne",
+    "BL" = "Canton_de_Bâle-Campagne",
+    "BS" = "Canton_de_Bâle-Ville",
+    "FR" = "Canton_de_Fribourg",
+    "GE" = "Canton_de_Genève",
+    "GL" = "Canton_de_Glaris",
+    "GR" = "Canton_des_Grisons",
+    "JU" = "Canton_du_Jura",
+    "LU" = "Canton_de_Lucerne",
+    "NE" = "Canton_de_Neuchâtel",
+    "NW" = "Canton_de_Nidwald",
+    "OW" = "Canton_d'Obwald",
+    "SG" = "Canton_de_Saint-Gall",
+    "SH" = "Canton_de_Schaffhouse",
+    "SO" = "Canton_de_Soleure",
+    "SZ" = "Canton_de_Schwytz",
+    "TG" = "Canton_de_Thurgovie",
+    "TI" = "Canton_du_Tessin", # Italian
+    "UR" = "Canton_d'Uri",
+    "VD" = "Canton_de_Vaud",
+    "VS" = "Canton_du_Valais",
+    "ZG" = "Canton_de_Zoug",
+    "ZH" = "Canton_de_Zurich"
   )[ s$canton.abbreviation ]
   
   # sanity check: all sponsors found in lower chamber
@@ -363,22 +363,43 @@ if(!file.exists(sponsors)) {
 
 s = read.csv(sponsors, stringsAsFactors = FALSE)
 
+# ==============================================================================
+# CHECK CONSTITUENCIES
+# ==============================================================================
+
+cat("Checking constituencies,", sum(is.na(s$constituency)), "missing...\n")
+for (i in na.omit(unique(s$constituency))) {
+  
+  g = GET(paste0("https://", meta[ "lang"], ".wikipedia.org/wiki/", i))
+  
+  if (status_code(g) != 200)
+    cat("Missing Wikipedia entry:", i, "\n")
+  
+  g = xpathSApply(htmlParse(g), "//title", xmlValue)
+  g = gsub("(.*) — Wikipédia(.*)", "\\1", g)
+  
+  if (gsub("\\s", "_", g) != i)
+    cat("Discrepancy:", g, "(WP) !=", i ,"(data)\n")
+  
+}
+
 # download sponsor photos (rerun to fix network errors)
+s$photo = paste0("photos/", s$id, ".jpg")
 
 cat("Getting sponsor profiles and photos...\n")
-for(i in unique(s$id)) {
+for (i in unique(s$id)) {
   
   # step 1: download web profile
   f = paste0("raw/sponsors/mp-", i, ".html")
   
-  if(!file.exists(f)) {
+  if (!file.exists(f)) {
     
     try(download.file(paste0(root, "f/suche/Pages/biografie.aspx?biografie_id=", i),
                       f, quiet = TRUE, mode = "wb"), silent = TRUE)
     
   }
   
-  if(!file.info(f)$size) {
+  if (!file.info(f)$size) {
     
     cat("Sponsor ID", sprintf("%3.0f", i), ": failed getting profile\n")
     file.remove(f)
@@ -390,16 +411,17 @@ for(i in unique(s$id)) {
       html_node(xpath = "//img[@class='profile']") %>% html_attr("src")
     
     f = paste0("photos/", i, ".jpg")
-    if(!file.exists(f)) {
+    if (!file.exists(f)) {
       
       try(download.file(paste0(root, u), f, quiet = TRUE, mode = "wb"),
           silent = TRUE)
       
     }
     
-    if(!file.info(f)$size) {
+    if (!file.info(f)$size) {
       
       cat("Sponsor ID", sprintf("%3.0f", i), ": failed getting photo\n")
+      s$photo[ s$id == i ] = NA
       file.remove(f)
       
     }
@@ -407,6 +429,31 @@ for(i in unique(s$id)) {
   }
   
 }
+
+s$url = paste0("http://www.parlament.ch/f/suche/pages/biografie.aspx?biografie_id=", s$id)
+
+# ============================================================================
+# QUALITY CONTROL
+# ============================================================================
+
+# - might be missing: born (int of length 4), constituency (chr),
+#   photo (chr, folder/file.ext)
+# - never missing: sex (chr, F/M), nyears (int), url (chr, URL),
+#   party (chr, mapped to colors)
+
+cat("Missing", sum(is.na(s$born)), "years of birth\n")
+stopifnot(is.integer(s$born) & nchar(s$born) == 4 | is.na(s$born))
+
+cat("Missing", sum(is.na(s$constituency)), "constituencies\n")
+stopifnot(is.character(s$constituency))
+
+cat("Missing", sum(is.na(s$photo)), "photos\n")
+stopifnot(is.character(s$photo) & grepl("^photos(_\\w{2})?/(.*)\\.\\w{3}", s$photo) | is.na(s$photo))
+
+stopifnot(!is.na(s$sex) & s$sex %in% c("F", "M"))
+stopifnot(!is.na(s$nyears) & is.integer(s$nyears))
+stopifnot(!is.na(s$url) & grepl("^http(s)?://(.*)", s$url))
+stopifnot(s$party %in% names(colors))
 
 # convert chamber ids to letters
 b$chamber = c("cn", "cs")[ b$chamber ]

@@ -1,9 +1,6 @@
-meta = c("cty" = "Switzerland", "cn" = "Conseil national", "cs" = "Conseil des États")
-mode = "fruchtermanreingold"
-
-for(jj in unique(b$chamber)) {
+for (jj in unique(b$chamber)) {
   
-  for(ii in unique(b$legislature)) {
+  for (ii in unique(b$legislature) %>% sort) {
     
     cat("\nChamber", jj, "years", ii)
     data = subset(b, chamber == jj & legislature == ii & n_au > 1)
@@ -52,10 +49,10 @@ for(jj in unique(b$chamber)) {
     edges = aggregate(w ~ ij, function(x) sum(1 / x), data = edges)
     
     # expand to edge list
-    edges = data.frame(i = gsub("(.*)///(.*)", "\\1", edges$ij),
+    edges = data_frame(i = gsub("(.*)///(.*)", "\\1", edges$ij),
                        j = gsub("(.*)///(.*)", "\\2", edges$ij),
                        raw = as.vector(raw[ edges$ij ]), # raw edge counts
-                       nfw = edges$w, stringsAsFactors = FALSE)
+                       nfw = edges$w)
     
     # Gross-Shalizi weights (weighted propensity to cosponsor)
     edges = merge(edges, aggregate(w ~ j, function(x) sum(1 / x), data = self))
@@ -75,12 +72,20 @@ for(jj in unique(b$chamber)) {
     
     n = network(edges[, 1:2 ], directed = TRUE)
     
-    n %n% "country" = as.character(meta[ "cty" ])
-    n %n% "title" = paste(as.character(meta[ jj ]),
-                          paste0(range(unique(substr(data$date, 1, 4))),
-                                 collapse = " to "))
+    n %n% "country" = meta[ "cty" ] %>% as.character
+    n %n% "lang" = meta[ "lang" ] %>% as.character
+    n %n% "years" = ii %>% as.character
+    n %n% "legislature" = c("1995-1999" = "45",
+                            "1999-2003" = "46",
+                            "2003-2007" = "47",
+                            "2007-2011" = "48",
+                            "2011-2015" = "49")[ ii ]
+    n %n% "chamber" = meta[ jj ] %>% as.character
+    n %n% "type" = meta[ paste0("type-", jj) ] %>% as.character
+    n %n% "ipu" = meta[ paste0("ipu-", jj) ] %>% as.integer
+    n %n% "seats" = meta[ paste0("seats-", jj) ] %>% as.integer
     
-    n %n% "n_bills" = nrow(data)
+    n %n% "n_cosponsored" = nrow(data)
     n %n% "n_sponsors" = table(subset(b, chamber == jj & legislature == ii)$n_au)
     
     n_au = as.vector(n_au[ network.vertex.names(n) ])
@@ -94,20 +99,15 @@ for(jj in unique(b$chamber)) {
     cat(network.size(n), "nodes\n")
     
     rownames(sp) = sp$name
-    n %v% "url" = as.character(sp[ network.vertex.names(n), "id" ])
-    n %v% "sex" = as.character(sp[ network.vertex.names(n), "sex" ])
-    n %v% "born" = as.numeric(substr(sp[ network.vertex.names(n), "born" ], 1, 4))
+    n %v% "url" = sp[ network.vertex.names(n), "url" ]
+    n %v% "sex" = sp[ network.vertex.names(n), "sex" ]
+    n %v% "born" = sp[ network.vertex.names(n), "born" ]
     n %v% "party" = sp[ network.vertex.names(n), "party" ]
-    n %v% "partyname" = groups[ n %v% "party" ]
-    n %v% "lr" = as.numeric(scores[ n %v% "party" ])
+    n %v% "partyname" = groups[ n %v% "party" ] %>% as.character
+    n %v% "lr" = scores[ n %v% "party" ] %>% as.numeric
     n %v% "constituency" = sp[ network.vertex.names(n), "constituency" ]
-    n %v% "nyears" = as.numeric(sp[ network.vertex.names(n), "nyears" ])
-    # n %v% "photo" = as.character(s[ network.vertex.names(n), "photo" ])
-    
-    # unweighted degree
-    n %v% "degree" = degree(n)
-    q = n %v% "degree"
-    q = as.numeric(cut(q, unique(quantile(q)), include.lowest = TRUE))
+    n %v% "nyears" = sp[ network.vertex.names(n), "nyears" ]
+    n %v% "photo" = sp[ network.vertex.names(n), "photo" ]
     
     set.edge.attribute(n, "source", as.character(edges[, 1]))
     set.edge.attribute(n, "target", as.character(edges[, 2]))
@@ -123,12 +123,12 @@ for(jj in unique(b$chamber)) {
     # network plot
     #
     
-    if(plot) {
+    if (plot) {
       
-      save_plot(n, file = paste0("plots/net_ch_", jj, ii),
+      save_plot(n, paste0("plots/net_ch_", jj, ii),
                 i = colors[ sp[ n %e% "source", "party" ] ],
                 j = colors[ sp[ n %e% "target", "party" ] ],
-                q, colors, order)
+                mode, colors)
       
     }
     
@@ -144,15 +144,14 @@ for(jj in unique(b$chamber)) {
     # export gexf
     #
     
-    if(gexf)
-      save_gexf(paste0("net_ch_", jj, ii), n, meta, mode, colors,
-                extra = "constituency")
+    if (gexf)
+      save_gexf(n, paste0("net_ch_", jj, ii), mode, colors)
     
   }
   
 }
 
-if(gexf)
+if (gexf)
   zip("net_ch.zip", dir(pattern = "^net_ch_\\w+\\d{4}-\\d{4}\\.gexf$"))
 
 save(list = ls(pattern = "^(net|edges|bills)_ch_\\w+\\d{4}$"),

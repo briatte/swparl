@@ -33,7 +33,7 @@ The `build.r` script then assembles the edge lists and plots the networks, with 
 - `sex` -- gender
 - `born` -- year of birth
 - `party` -- political party
-- `constituency` -- constituency
+- `constituency` -- constituency (as a Wikipedia Francophone handle)
 - `nyears` -- time in office since legislature 44, in years
 
 __Note:__ the code uses French party abbreviations and English party names. Three regional party branches are grouped with larger formations: the single sponsor for _Alternative de Gauche_ in Geneva is grouped with the _Parti Suisse du Travail_, the Greens from Bern (_Grünes Bündnis_) and Zoug (_Alternative Canton de Zoug_) are grouped with the Swiss Federation of Green Parties, and the branches of the Christian Social Party in Obwalden and Wallis are grouped with their main party.
