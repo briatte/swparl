@@ -8,9 +8,9 @@ for (jj in unique(b$chamber)) {
     
     cat(":", nrow(data), "cosponsored documents, ")
     
-    #
-    # directed edge list
-    #
+    # ==========================================================================
+    # DIRECTED EDGE LIST
+    # ==========================================================================
     
     edges = bind_rows(lapply(data$sponsors, function(d) {
       
@@ -23,9 +23,9 @@ for (jj in unique(b$chamber)) {
       
     }))
     
-    #
-    # edge weights
-    #
+    # ==========================================================================
+    # EDGE WEIGHTS
+    # ==========================================================================
     
     # first author self-loops, with counts of cosponsors
     self = subset(edges, i == j)
@@ -66,9 +66,9 @@ for (jj in unique(b$chamber)) {
     
     cat(nrow(edges), "edges, ")
     
-    #
-    # directed network
-    #
+    # ==========================================================================
+    # DIRECTED NETWORK
+    # ==========================================================================
     
     n = network(edges[, 1:2 ], directed = TRUE)
     
@@ -87,7 +87,11 @@ for (jj in unique(b$chamber)) {
     
     n %n% "n_cosponsored" = nrow(data)
     n %n% "n_sponsors" = table(subset(b, chamber == jj & legislature == ii)$n_au)
-    
+
+    # ==========================================================================
+    # VERTEX-LEVEL ATTRIBUTES
+    # ==========================================================================
+
     n_au = as.vector(n_au[ network.vertex.names(n) ])
     n %v% "n_au" = ifelse(is.na(n_au), 0, n_au)
     
@@ -119,9 +123,9 @@ for (jj in unique(b$chamber)) {
     set.edge.attribute(n, "nfw", edges$nfw) # Newman-Fowler weights
     set.edge.attribute(n, "gsw", edges$gsw) # Gross-Shalizi weights
     
-    #
-    # network plot
-    #
+    # ==========================================================================
+    # SAVE PLOTS
+    # ==========================================================================
     
     if (plot) {
       
@@ -132,27 +136,24 @@ for (jj in unique(b$chamber)) {
       
     }
     
-    #
-    # save objects
-    #
+    # ==========================================================================
+    # SAVE OBJECTS
+    # ==========================================================================
     
     assign(paste0("net_ch_",  jj, substr(ii, 1, 4)), n)
     assign(paste0("edges_ch_", jj, substr(ii, 1, 4)), edges)
     assign(paste0("bills_ch_", jj, substr(ii, 1, 4)), data)
     
-    #
-    # export gexf
-    #
+    # ==========================================================================
+    # SAVE GEXF
+    # ==========================================================================
     
     if (gexf)
       save_gexf(n, paste0("net_ch_", jj, ii), mode, colors)
     
   }
+	
+  if (gexf)
+    zip(paste0("net_ch_", jj, ".zip"), dir(pattern = paste0("^net_ch_", jj, "\\d{4}-\\d{4}\\.gexf$")))
   
 }
-
-if (gexf)
-  zip("net_ch.zip", dir(pattern = "^net_ch_\\w+\\d{4}-\\d{4}\\.gexf$"))
-
-save(list = ls(pattern = "^(net|edges|bills)_ch_\\w+\\d{4}$"),
-     file = "data/net_ch.rda")

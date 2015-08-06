@@ -89,6 +89,3 @@ for (i in unique(comm$legislature)) {
   assign(paste0("conet_ch_", i), nn)
   
 }
-
-save(list = ls(pattern = "^((co)?net|edges|bills)_ch_\\w+\\d{4}$"),
-     file = "data/net_ch.rda")
