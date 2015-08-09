@@ -152,7 +152,7 @@ for (jj in unique(b$chamber)) {
       save_gexf(n, paste0("net_ch_", jj, ii), mode, colors)
     
   }
-	
+  
   if (gexf)
     zip(paste0("net_ch_", jj, ".zip"), dir(pattern = paste0("^net_ch_", jj, "\\d{4}-\\d{4}\\.gexf$")))
   
