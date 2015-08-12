@@ -1,7 +1,3 @@
-dir.create("raw/indexes"  , showWarnings = FALSE)
-dir.create("raw/bills"    , showWarnings = FALSE)
-dir.create("raw/sponsors" , showWarnings = FALSE)
-
 legislatures = c(
   "1991-1995" = "1900-01-01", # l. 44 (baseline)
   "1995-1999" = "1995-10-22",
