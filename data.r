@@ -43,7 +43,7 @@ if (!file.exists(bills)) {
       
       cat("Indexing chamber", k, "legislature", l, "")
       
-      while(i < p) {
+      while (i < p) {
         
         i = p
         
