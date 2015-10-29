@@ -35,7 +35,7 @@ if (!file.exists(bills)) {
                              "_&gvk_gstate_key=ANY&gvk_gtyp_key=4&legislatur=", l,
                              "&sort=GN&way=desc"), f, mode = "wb", quiet = TRUE)
       
-      p = html(f) %>%
+      p = read_html(f) %>%
         html_nodes(".search-pager a") %>% html_attr("href") %>%
         unique %>%
         gsub("(.*)from=(\\d+)&(.*)", "\\2", .) %>%
@@ -57,7 +57,7 @@ if (!file.exists(bills)) {
         
         cat(".")
         
-        p = html(f) %>%
+        p = read_html(f) %>%
           html_nodes(".search-pager a") %>% html_attr("href") %>%
           unique %>%
           gsub("(.*)from=(\\d+)&(.*)", "\\2", .) %>%
@@ -85,7 +85,7 @@ if (!file.exists(bills)) {
     
     cat("Page", which(p == i) %>% sprintf("%2.0f", .))
     
-    h = html(i, encoding = "UTF-8") %>%
+    h = read_html(i, encoding = "UTF-8") %>%
       html_nodes(".search-results a") %>%
       html_attr("href")
     
@@ -133,7 +133,7 @@ if (!file.exists(bills)) {
   
   for (i in p) {
     
-    h = html(i, encoding = "UTF-8")
+    h = read_html(i, encoding = "UTF-8")
     
     au = html_node(h, xpath = "//dd[@data-field='author-councillor']//a")
     co = html_nodes(h, "ul.mitunterzeichnende a") %>% html_attr("href")
@@ -403,7 +403,7 @@ for (i in unique(s$id)) {
   } else {
     
     # step 2: download photo
-    u = html(f) %>%
+    u = read_html(f) %>%
       html_node(xpath = "//img[@class='profile']") %>% html_attr("src")
     
     f = paste0("photos/", i, ".jpg")
