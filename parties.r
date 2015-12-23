@@ -41,8 +41,8 @@ colors = c(
   "FPS" = "#A65628",      # brown
   "UDF" = "#C51B7D",      # magenta
   "LEGA" = "#80B1D3",     # light blue
-  "DS"  = "#000000",      # black
   "MCR" = "#FF7F00",      # yellow/red -- orange
+  "DS"  = "#000000",      # black
   "IND" = "#AAAAAA"       # light grey
 )
 
@@ -65,8 +65,8 @@ scores = c(
   "FPS" = 8.1,
   "UDF" = 8.7,
   "LEGA" = 8.7,
+  "MCR" = 8.7,
   "DS" = 9.4,
-  "MCR" = Inf, # missing
   "IND" = Inf
 )
 
