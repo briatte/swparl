@@ -135,7 +135,7 @@ if (!file.exists(bills)) {
     
     h = read_html(i, encoding = "UTF-8")
     
-    au = html_node(h, xpath = "//dd[@data-field='author-councillor']//a")
+    au = html_nodes(h, xpath = "//dd[@data-field='author-councillor']//a") %>% html_attr("href")
     co = html_nodes(h, "ul.mitunterzeichnende a") %>% html_attr("href")
     
     b = rbind(b, data_frame(
@@ -143,8 +143,8 @@ if (!file.exists(bills)) {
       date = html_node(h, xpath = "//dd[@data-field='deposit-date']") %>%
         html_text %>% strptime("%d.%m.%Y") %>% as.Date,
       title = html_node(h, "h3.cv-title") %>% html_text,
-      au = ifelse(is.null(au), NA, html_attr(au, "href") %>% gsub("\\D", "", .)),
-      co = ifelse(is.null(co), NA, paste0(gsub("\\D", "", co), collapse = ";"))
+      au = ifelse(!length(au), NA, gsub("\\D", "", au)),
+      co = ifelse(!length(co), NA, paste0(gsub("\\D", "", co), collapse = ";"))
     ))
     
   }
@@ -154,7 +154,7 @@ if (!file.exists(bills)) {
   
   # merge author and cosponsors
   b$sponsors = paste0(b$au, ";", b$co)
-  b$sponsors = gsub(";$", "", b$sponsors)
+  b$sponsors = gsub(";NA$", "", b$sponsors)
   
   # count total number of sponsors
   b$n_au = 1 + str_count(b$sponsors, ";")
